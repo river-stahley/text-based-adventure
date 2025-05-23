@@ -16,11 +16,27 @@ public class GameGUI {
 
     private Player player; // Assuming you have a Player class to manage player details
 
-    //StartButtonListener startButtonListener = new StartButtonListener();
+    // Create list of suspects
+    Suspect suspect1 = new Suspect("Dr. William Patrick", "Psychiatrist");
+    Suspect suspect2 = new Suspect("Mr. Paul Todd", "Business Partner");
+    Suspect suspect3 = new Suspect("Mrs. Annie West", "Wife");
+    Suspect suspect4 = new Suspect("Ms. Karen Turner", "Lover");
+    Suspect suspect5 = new Suspect("Mr. Wayne Cady", "Rival");
+    Suspect suspect6 = new Suspect("Mr. Jack Shipman", "Neighbor");
+    Suspect suspect7 = new Suspect("Mr. Eugene West", "Son");
+
+    private GameStory gameStory;
+    private final Suspect[] suspects = {
+        suspect1, suspect2, suspect3, suspect4, suspect5, suspect6, suspect7
+    };
+    private Suspect killer;
 
     public void startScreen(){
         // Initialize the frame
         initializeFrame(1920, 1080);
+        
+        killer = suspects[(int)(Math.random() * suspects.length)];
+        gameStory = new GameStory(killer); // Initialize the game story
 
         // Prompt the user to enter their name
         String playerName = JOptionPane.showInputDialog(frame, "Enter your name: ", 
@@ -72,34 +88,11 @@ public class GameGUI {
         optionPanel.setLayout(new GridLayout(4, 1));
         container.add(optionPanel);
 
-        option1 = createButton("Examine the body", startFont, Color.black,
-        Color.white, (e) -> {
-            // Action for option1 button
-            textArea.setText("You examine the body and find a clue.");
-            option1.setVisible(false); // Hide the button after use
-        });
-
-        option2 = createButton("Question Witness", startFont, Color.black,
-        Color.white, (e) -> {
-            // Action for option2 button
-            textArea.setText("You question the witness and gather more information.");
-            option2.setVisible(false); // Hide the button after use
-        });
-
-        option3 = createButton("Search For Clues", startFont, Color.black,
-        Color.white, (e) -> {
-            // Action for option3 button
-            textArea.setText("You search for clues and find a hidden item.");
-            option3.setVisible(false); // Hide the button after use
-        });
-
-        option4 = createButton("Leave Crime Scene", startFont, Color.black,
-        Color.white, (e) -> {
-            // Action for option4 button
-            textArea.setText("You leave the crime scene and head to the next location.");
-            player.setLocation("Next Location"); // Update player location
-            option4.setVisible(false); // Hide the button after use
-        });
+        // Create option buttons
+        option1 = createButton("", startFont, Color.black, Color.white, e -> {});
+        option2 = createButton("", startFont, Color.black, Color.white, e -> {});
+        option3 = createButton("", startFont, Color.black, Color.white, e -> {});
+        option4 = createButton("", startFont, Color.black, Color.white, e -> {});
 
         JButton saveButton = createButton("Save Progress", startFont, Color.black,
         Color.white, (e) -> {
@@ -129,6 +122,8 @@ public class GameGUI {
         optionPanel.add(saveButton);
         optionPanel.add(loadButton);
 
+        updateOptionButtonsForStory(); // Initialize option buttons
+
         // Add KeyBinding to handle 'C' key for displaying clues
         InputMap inputMap = frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = frame.getRootPane().getActionMap();
@@ -154,7 +149,7 @@ public class GameGUI {
         playerPanel.setLayout(new BorderLayout());
 
         locationLabel = createLabel("Location: " + player.getLocation(), startFont, Color.white);
-        playerLabel = createLabel("Player: " + player.getName(), startFont, Color.white);
+        playerLabel = createLabel("Player: Detective " + player.getName(), startFont, Color.white);
         playerPanel.add(locationLabel, BorderLayout.WEST);
         playerPanel.add(playerLabel, BorderLayout.EAST);
         container.add(playerPanel);
@@ -223,5 +218,244 @@ public class GameGUI {
         textBlock.setLineWrap(true);
         textBlock.setEditable(false);
         return textBlock;
+    }
+
+    private void updateOptionButtonsForStory() {
+        int segment = gameStory.getCurrentSegmentIndex(); // Add this getter to GameStory if needed
+        String killerName = killer.getName();
+
+        //display killer name
+        textArea.setText("Current segment: " + segment + "\nKiller: " + killerName);
+
+        // Remove all previous listeners before adding new ones
+        for (JButton btn : new JButton[]{option1, option2, option3, option4}) {
+            for (var al : btn.getActionListeners()) {
+                btn.removeActionListener(al);
+            }
+        }
+
+        // Example: Change button text and actions based on the segment
+        switch (segment) {
+            case 0 -> {
+                option1.setVisible(true);
+                option2.setVisible(true);
+                option3.setVisible(true);
+                option4.setVisible(true);
+
+                option1.setText("Examine the body");
+                option1.setVisible(true);
+                option1.addActionListener(e -> {
+                    textArea.setText("Examining naked body...");
+                    option1.setVisible(false);
+                });
+
+                option2.setText("Question witness");
+                option2.setVisible(true);
+                option2.addActionListener(e -> {
+                    textArea.setText("You look around and see a nervous witness.");
+                    option2.setVisible(false);
+                });
+
+                option3.setText("Search for clues");
+                option3.setVisible(true);
+                option3.addActionListener(e -> {
+                    textArea.setText("The police share some details with you.");
+                    option3.setVisible(false);
+                });
+
+                option4.setText("Leave crime scene");
+                option4.setVisible(true);
+                option4.addActionListener(e -> {
+                    textArea.setText(gameStory.nextSegment());
+                    //player.setLocation("Next Location"); // Update player location
+                    //locationLabel.setText("Location: " + player.getLocation());
+                    updateOptionButtonsForStory();
+                });
+            }
+            case 1 -> {
+                option1.setVisible(true);
+                option2.setVisible(true);
+                option3.setVisible(true);
+                option4.setVisible(true);    
+                // Example: Custom text based on killer
+            switch (killerName) {
+                case "Dr. William Patrick" -> {
+                    option1.setText("Confront Dr. Patrick");
+                    option1.addActionListener(e -> {
+                        textArea.setText("Dr. Patrick seems nervous under questioning.");
+                        player.setLocation("Dr. Patrick's Office");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option1.setVisible(false);
+                    });
+                    option2.setText("Check psychiatric notes");
+                    option2.addActionListener(e -> {
+                        textArea.setText("The notes reveal late-night visits.");
+                        player.setLocation("Records Room");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option2.setVisible(false);
+                    });
+                    option3.setText("Talk to the nurse");
+                    option3.addActionListener(e -> {
+                        textArea.setText("The nurse mentions a secret affair.");
+                        player.setLocation("Nurse's Station");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option3.setVisible(false);
+                    });
+                    option4.setText("Search the office");
+                    option4.addActionListener(e -> {
+                        textArea.setText("You find a hidden letter.");
+                        player.setLocation("Dr. Patrick's Office");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option4.setVisible(false);
+                    });
+
+                }
+                case "Mr. Paul Todd" -> {
+                    option1.setText("Review business records");
+                    option1.addActionListener(e -> {
+                        textArea.setText("You find evidence of arguments.");
+                        player.setLocation("Mr. Todd's Office");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option1.setVisible(false);
+                    });
+                    option2.setText("Talk to secretary");
+                    option2.addActionListener(e -> {
+                        textArea.setText("The secretary mentions threats.");
+                        player.setLocation("Secretary's Desk");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option2.setVisible(false);
+                    });
+                    option3.setText("Inspect the trash");
+                    option3.addActionListener(e -> {
+                        textArea.setText("You find a torn contract.");
+                        player.setLocation("Office Trash Area");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option3.setVisible(false);
+                    });
+                    option4.setText("Confront Paul Todd");
+                    option4.addActionListener(e -> {
+                        textArea.setText("Mr. Todd tries to bribe you.");
+                        player.setLocation("Mr. Todd's Office");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option4.setVisible(false);
+                    });
+                }
+                case "Mrs. Annie West" -> {
+                    option1.setText("Talk to neighbors");
+                    option1.addActionListener(e -> {
+                        textArea.setText("Neighbors mention loud arguments.");
+                        player.setLocation("West's Neighborhood");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option1.setVisible(false);
+                    });
+                    option2.setText("Search the house");
+                    option2.addActionListener(e -> {
+                        textArea.setText("You find a hidden letter.");
+                        player.setLocation("Annie's House");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option2.setVisible(false);
+                    });
+                    option3.setText("Examine the evidence");
+                    option3.addActionListener(e -> {
+                        textArea.setText("Annie's fingerprints are on the weapon.");
+                        player.setLocation("Police Lab");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option3.setVisible(false);
+                    });
+                    option4.setText("Confront Annie");
+                    option4.addActionListener(e -> {
+                        textArea.setText("Annie tries to blame the lover.");
+                        player.setLocation("Annie's House");
+                        locationLabel.setText("Location: " + player.getLocation());
+                        option4.setVisible(false);
+                    });
+                }
+                case "Ms. Karen Turner" -> {
+                    option1.setText("Examine love letters");
+                    option1.addActionListener(e -> {
+                        textArea.setText("The letters reveal a secret affair.");
+                        option1.setVisible(false);
+                    });
+                    option2.setText("Talk to friends");
+                    option2.addActionListener(e -> {
+                        textArea.setText("Friends mention jealousy.");
+                        option2.setVisible(false);
+                    });
+                    option3.setText("Inspect the scene");
+                    option3.addActionListener(e -> {
+                        textArea.setText("You find Karen's scarf.");
+                        option3.setVisible(false);
+                    });
+                    option4.setText("Confront Karen");
+                    option4.addActionListener(e -> {
+                        textArea.setText("Karen tries to flee the city.");
+                        option4.setVisible(false);
+                    });
+                }
+                case "Mr. Wayne Cady" -> {
+                    option1.setText("Check emails");
+                    option1.addActionListener(e -> {
+                        textArea.setText("You find threatening emails.");
+                        option1.setVisible(false);
+                    });
+                    option2.setText("Talk to witnesses");
+                    option2.addActionListener(e -> {
+                        textArea.setText("Witnesses mention a rivalry.");
+                        option2.setVisible(false);
+                    });
+                    option3.setText("Inspect the car");
+                    option3.addActionListener(e -> {
+                        textArea.setText("Cady's car was seen near the scene.");
+                        option3.setVisible(false);
+                    });
+                    option4.setText("Confront Cady");
+                    option4.addActionListener(e -> {
+                        textArea.setText("You find Cady's glove in the garden.");
+                        option4.setVisible(false);
+                    });
+                }
+                case "Mr. Jack Shipman" -> {
+                    option1.setText("Talk to neighbors");
+                    option1.addActionListener(e -> {
+                        textArea.setText("Neighbors mention Jack's odd behavior.");
+                        option1.setVisible(false);
+                    });
+                    option2.setText("Inspect the boots");
+                    option2.addActionListener(e -> {
+                        textArea.setText("You find muddy boots in Jack's house.");
+                        option2.setVisible(false);
+                    });
+                    option3.setText("Check the timeline");
+                    option3.addActionListener(e -> {
+                        textArea.setText("Jack's timeline doesn't match up.");
+                        option3.setVisible(false);
+                    });
+                    option4.setText("Confront Jack");
+                    option4.addActionListener(e -> {
+                        textArea.setText("Jack tries to mislead your investigation.");
+                        option4.setVisible(false);
+                    });
+                }
+                default -> {
+                    // Default for other suspects
+                    option1.setText("Talk to the suspect");
+                }
+            }
+
+            option4.setText("Advance story");
+            option4.addActionListener(e -> {
+                textArea.setText(gameStory.nextSegment());
+                updateOptionButtonsForStory();
+            });        
+            }
+            // Add more cases for other segments
+            default -> {
+                // Hide all options if story is over
+                option1.setVisible(false);
+                option2.setVisible(false);
+                option3.setVisible(false);
+                option4.setVisible(false);
+            }
+        }
     }
 }
